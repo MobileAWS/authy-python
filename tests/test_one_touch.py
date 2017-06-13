@@ -17,19 +17,19 @@ class OneTouchTest(unittest.TestCase):
         self.resource = OneTouch(test_helper.LIVE_API_URL, test_helper.LIVE_API_KEY)
 
     def test_send_request_with_valid_data(self):
-        user_id = test_helper.AUTH_ID_A
+        user_id = test_helper.LIVE_AUTH_ID
         message = "Login requested for a CapTrade Bank account."
-        seconds_to_expire = 120
+        seconds_to_expire = None
 
         details = {}
         details['username'] = 'example@example.com'
         details['location'] = 'California, USA'
-        details['Account Number'] = test_helper.AUTH_ID_B
+        details['Account Number'] = test_helper.LIVE_AUTH_ID
 
         hidden_details = {}
         hidden_details['ip_address'] = '110.37.200.52'
 
-        logos = [dict(res='default', url='https://www.python.org/static/img/python-logo.png'), dict(res='low', url='https://www.python.org/static/img/python-logo.png')]
+        logos = [dict(res='default', url='https://www.python.org/static/img/python-logo.png')]
 
 
         touch = self.resource.send_request(user_id, message, seconds_to_expire, details, hidden_details, logos)
@@ -40,7 +40,7 @@ class OneTouchTest(unittest.TestCase):
         self.assertNotEqual(self.resource.get_approval_status(touch.get_uuid()).status(), False)
 
     def test_send_request_with_minimum_data(self):
-        user_id = test_helper.AUTH_ID_A
+        user_id = test_helper.LIVE_AUTH_ID
         message = "Login requested for a CapTrade Bank account."
         touch = self.resource.send_request(user_id, message)
 
@@ -69,10 +69,10 @@ class OneTouchTest(unittest.TestCase):
         try:
             touch = self.resource.send_request(user_id, message, seconds_to_expire, details, hidden_details, logos)
         except AuthyException as e:
-            self.assertEqual(str(e), "Invalid authy id, user id is requred and must be an integer value.")
+            self.assertEqual(str(e), "Invalid authy id, user id is required and must be an integer value.")
 
     def test_send_request_with_balnk_message(self):
-        user_id = test_helper.AUTH_ID_A
+        user_id = test_helper.LIVE_AUTH_ID
         message = ''
         seconds_to_expire = 120
 
@@ -92,7 +92,7 @@ class OneTouchTest(unittest.TestCase):
             self.assertEqual(str(e), "Invalid message - should not be empty. It is required")
 
     def test_send_request_with_blank_details(self):
-        user_id = test_helper.AUTH_ID_A
+        user_id = test_helper.LIVE_AUTH_ID
         message = 'Some test message'
         seconds_to_expire = 120
 
@@ -110,7 +110,7 @@ class OneTouchTest(unittest.TestCase):
             self.assertEqual(str(e), "Invalid details - should not be empty. It is required")
 
     def test_send_request_with_invalid_logoKey(self):
-        user_id = test_helper.AUTH_ID_A
+        user_id = test_helper.LIVE_AUTH_ID
         message = 'Test Message'
         seconds_to_expire = 120
 
@@ -131,7 +131,7 @@ class OneTouchTest(unittest.TestCase):
             self.assertEqual(str(e), "Invalid logos list. Only res and url required")
 
     def test_send_request_with_invalid_logo_dataType(self):
-        user_id = test_helper.AUTH_ID_A
+        user_id = test_helper.LIVE_AUTH_ID
         message = 'Test Message'
         seconds_to_expire = 120
 

@@ -15,10 +15,7 @@ except ImportError:
 try:
     import json
 except ImportError:
-    try:
-        import simplejson as json
-    except ImportError:
-        from django.utils import simplejson as json
+    import simplejson as json
 
 MIN_TOKEN_SIZE = 6
 MAX_TOKEN_SIZE = 12
@@ -408,8 +405,8 @@ class OneTouch(Resource):
         :return OneTouchResponse: the server response Json Object
         """
 
-        if not user_id or not isinstance(user_id, int):
-            raise AuthyFormatException('Invalid authy id, user id is requred and must be an integer value.')
+        if not isinstance(user_id, int) or user_id < 0:
+            raise AuthyFormatException('Invalid authy id, user id is required and must be an integer value.')
 
         if not message:
             raise AuthyFormatException('Invalid message - should not be empty. It is required')
@@ -421,7 +418,6 @@ class OneTouch(Resource):
             'hidden_details': self.__clean_inputs(hidden_details),
             'logos': self.clean_logos(logos)
         }
-
         request_url = "/onetouch/json/users/{0}/approval_requests".format(user_id)
         response = self.post(request_url, data)
         return OneTouchResponse(self, response)
@@ -494,8 +490,14 @@ class OneTouch(Resource):
         if not params or not isinstance(params, dict):
             raise AuthyFormatException("Invalid params - should not be empty. It is required")
 
+        logo_q = ''
+        for logo in params['approval_request']['logos']:
+            logo_q += '&'+quote('approval_request[logos][][url]')+'=' + logo['url'] + '&'+quote('approval_request[logos][][res]')+'=' + logo['res']
 
-        query_params = self.__make_http_query(params)
+        if logo_q is not '':
+            del params['approval_request']['logos']
+
+        query_params = self.__make_http_query(params) + logo_q
 
         # Sort and replace encoded  params in case-sensitive order
         sorted_params = '&'.join(sorted(query_params.replace('/', '%2F').replace('%20', '+').split('&')))
@@ -505,7 +507,7 @@ class OneTouch(Resource):
             return calculated_signature.decode() == signature
         except:
             calculated_signature = base64.b64encode(hmac.new(self.api_key, data, hashlib.sha256).digest())
-            return calculated_signature == signature
+            return calculated_signature.decode() == signature
 
     def __make_http_query(self, params, topkey=''):
         """
@@ -551,8 +553,8 @@ class OneTouch(Resource):
 
         for k in params:
             if not isinstance(params[k], dict):
-                temp_hash[k[:MAX_STRING_SIZE]] = params[k][:MAX_STRING_SIZE]
+                temp_hash[k[:MAX_STRING_SIZE]] = params[k][:MAX_STRING_SIZE] if isinstance(params[k], basestring) else params[k]
             else:
-                temp_hash[k[:MAX_STRING_SIZE]] = self.__clean_inputs(params[k]);
+                temp_hash[k[:MAX_STRING_SIZE]] = self.__clean_inputs(params[k])
 
         return temp_hash
